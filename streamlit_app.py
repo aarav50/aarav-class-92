@@ -1,40 +1,37 @@
-import altair as alt
-import numpy as np
-import pandas as pd
-import streamlit as st
+import streamlit
 
-"""
-# Welcome to Streamlit!
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+def emi(p, n, r):
+    rr = r / 12
+    nn = n * 12
+    emianswer = p * rr / 100 * (1 + rr / 100) ** nn / ((1 + rr / 100) ** nn - 1)
+    return emianswer
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+def emiadvance(p, n, r, m):
+    rr = r / 12
+    nn = n * 12
+    repeat = (emi(p, n, r)*nn)-(emi(p, n, r)*m)
+    return repeat
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+streamlit.sidebar.title('Loan Calculator')
+magic = streamlit.sidebar.selectbox("", ("Monthly Payment", "Outstanding Balance",))
+if magic == 'Monthly Payment':
+    streamlit.title('Loan Monthly Payment Calculator')
+    prince = streamlit.slider('Principal Amount($)', 1000, 1000000)
+    tenure = streamlit.slider('Tenure(years)', 1, 30)
+    roi = streamlit.slider('rate of interest%', 1.00, 15.00)
+    button = streamlit.button('Calculate')
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+    if button:
+        streamlit.write('This much per month ',emi(prince, tenure, roi))
+elif magic == 'Outstanding Balance':
+    streamlit.title('Loan Outstanding Balance Calculator')
+    prince = streamlit.slider('Principal Amount($)', 1000, 1000000)
+    tenure = streamlit.slider('Tenure(years)', 1, 30)
+    roi = streamlit.slider('rate of interest%', 1.00, 15.00)
+    month = streamlit.slider('Months', 1, (tenure * 12))
+    button = streamlit.button('Calculate')
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
-
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+    if button:
+        streamlit.write('This much is left ',emiadvance(prince, tenure, roi, month))
